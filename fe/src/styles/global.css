@@ -1,2 +1,58 @@
 @import "tailwindcss";
 @import "./fonts.css";
+
+.mm-container {
+  @apply py-8 px-12;
+}
+
+p {
+  @apply mb-6 leading-tight font-light;
+}
+
+p:last-child {
+  @apply mb-0;
+}
+
+/* EXTERNAL LINKS */
+a:not([href^="/"]) {
+  @apply underline decoration-dotted;
+}
+
+a:not([href^="/"]):hover {
+  @apply decoration-solid;
+}
+
+/* INTERNAL LINKS */
+a[href^="/"] {
+  @apply relative;
+}
+
+.strike {
+  content: ' ';
+  position: absolute;
+  top: 40%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: black;
+}
+
+a[href^="/"]:hover::after {
+  content: ' ';
+  position: absolute;
+  top: 40%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: black;
+  animation-name: strike;
+  animation-duration: .1s;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+@keyframes strike{
+  0%   { width : 0; }
+  100% { width: 100%; }
+}
