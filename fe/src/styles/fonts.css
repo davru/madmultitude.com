@@ -1,0 +1,105 @@
+/* Webfont: Monoblock-Thin */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Thin.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Thin.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Thin.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 100;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-ExtraLight */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-ExtraLight.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-ExtraLight.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-ExtraLight.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 200;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-Light */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Light.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Light.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Light.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 300;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-Regular */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Regular.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Regular.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Regular.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-Medium */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Medium.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Medium.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Medium.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-SemiBold */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-SemiBold.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-SemiBold.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-SemiBold.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 600;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-Bold */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Bold.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Bold.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Bold.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 700;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-ExtraBold */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-ExtraBold.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-ExtraBold.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-ExtraBold.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 800;
+  text-rendering: optimizeLegibility;
+}
+
+/* Webfont: Monoblock-Black */
+@font-face {
+  font-family: 'Monoblock';
+  src: url('./fonts/Monoblock-Black.woff2') format('woff2'), /* Modern Browsers */
+       url('./fonts/Monoblock-Black.woff') format('woff'), /* Modern Browsers */
+       url('./fonts/Monoblock-Black.ttf') format('truetype'); /* Safari, Android, iOS */
+       font-style: normal;
+  font-weight: 900;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  /* Monoblock as default monospaced font */
+  font-family: 'Monoblock', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 300;
+  font-size: 16px;
+}
