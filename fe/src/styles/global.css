@@ -27,7 +27,7 @@ a[href^="/"] {
   @apply relative;
 }
 
-.strike {
+.strike::after {
   content: ' ';
   position: absolute;
   top: 40%;
@@ -37,7 +37,7 @@ a[href^="/"] {
   background: black;
 }
 
-a[href^="/"]:hover::after {
+a[href^="/"]:not(.strike):hover::after {
   content: ' ';
   position: absolute;
   top: 40%;
@@ -46,7 +46,7 @@ a[href^="/"]:hover::after {
   height: 1px;
   background: black;
   animation-name: strike;
-  animation-duration: .1s;
+  animation-duration: .125s;
   animation-timing-function: linear;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;

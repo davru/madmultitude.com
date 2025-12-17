@@ -1,9 +1,13 @@
+---
+const { pathname } = Astro.url;
+---
+
 <nav class="mm-container flex justify-between items-center">
   <h1 class="sr-only">Mad Multitude</h1>
   <span class="text-2xl font-medium leading-none">Mad.<br/>Multitude</span>
   <ul class="flex space-x-16">
-    <li><a href="/">INDEX</a></li>
-    <li><a href="/essence">ESENCIA</a></li>
-    <li><a href="/cart">BOLSA</a></li>
+    <li><a href="/" class={pathname === '/' ? 'strike' : ''}>INDEX</a></li>
+    <li><a href="/essence" class={pathname === '/essence' ? 'strike' : ''}>ESENCIA</a></li>
+    <li><a href="/cart" class={pathname === '/cart' ? 'strike' : ''}>BOLSA</a></li>
   </ul>
 </nav>
