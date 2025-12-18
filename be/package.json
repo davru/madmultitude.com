@@ -25,7 +25,8 @@
     "@medusajs/admin-sdk": "2.12.2",
     "@medusajs/cli": "2.12.2",
     "@medusajs/framework": "2.12.2",
-    "@medusajs/medusa": "2.12.2"
+    "@medusajs/medusa": "2.12.2",
+    "@rokmohar/medusa-payment-manual": "^1.0.3"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.12.2",
