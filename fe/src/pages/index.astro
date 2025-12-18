@@ -1,8 +1,17 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import Layout from "@/layouts/Layout.astro";
+import { sdk } from "@/lib/sdk.ts";
+
+const { products } = await sdk.store.product.list({
+  fields: 'title,handle,metadata',
+  order: '-created_at',
+});
 ---
 
 <Layout>
-	<h1>Welcome to MAD MULTITUDE</h1>
-	<p>Your gateway to decentralized finance and innovation.</p>
+  {products.map((product) => (
+    <div>
+      <a href={`/product/${product.handle}`}><span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span></a>
+    </div>
+  ))}
 </Layout>
