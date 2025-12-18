@@ -7,7 +7,7 @@ const { pathname } = Astro.url;
   <span class="text-2xl font-medium leading-none">Mad.<br/>Multitude</span>
   <ul class="flex space-x-16">
     <li><a href="/" class={pathname === '/' ? 'strike' : ''}>INDEX</a></li>
-    <li><a href="/essence" class={pathname === '/essence' ? 'strike' : ''}>ESENCIA</a></li>
-    <li><a href="/cart" class={pathname === '/cart' ? 'strike' : ''}>BOLSA</a></li>
+    <li><a href="/essence" class={pathname.startsWith('/essence') ? 'strike' : ''}>ESENCIA</a></li>
+    <li><a href="/cart" class={pathname.startsWith('/cart') ? 'strike' : ''}>BOLSA</a></li>
   </ul>
 </nav>
