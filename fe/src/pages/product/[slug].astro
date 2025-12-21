@@ -1,4 +1,5 @@
 ---
+import Products from '@/components/Products.astro';
 import Layout from '@/layouts/Layout.astro';
 import { sdk } from '@/lib/sdk';
 import type { GetStaticPaths } from 'astro';
@@ -16,5 +17,5 @@ const { slug } = Astro.params;
 ---
 
 <Layout>
-  <h1>{slug}</h1>
+  <Products active={slug} />
 </Layout>

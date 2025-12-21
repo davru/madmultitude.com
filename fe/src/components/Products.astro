@@ -1,0 +1,16 @@
+---
+import { sdk } from "@/lib/sdk.ts";
+
+const { products } = await sdk.store.product.list({
+  fields: 'title,handle,metadata',
+  order: '-created_at',
+});
+
+const { active } = Astro.props;
+---
+
+{products.map((product) => (
+  <div>
+    <a href={`/product/${product.handle}`} class={active === product.handle ? "strike" : ""}><span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span></a>
+  </div>
+))}
