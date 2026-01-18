@@ -2,6 +2,7 @@
 import Button from "@/components/Button.astro";
 import { listProducts } from "@/lib/data/products.ts";
 import { sdk } from "@/lib/sdk.ts";
+import { accordionSlide } from "@/lib/transitions/accordion-slide.ts";
 import type { StoreProduct } from "@medusajs/types";
 
 const { products } = await sdk.store.product.list({
@@ -22,12 +23,48 @@ if (activeProductId) {
 }
 ---
 
+<style>
+  @keyframes accordionSlideIn {
+    from {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+      overflow: hidden;
+    }
+    to {
+      opacity: 1;
+      max-height: 500px;
+      transform: translateY(0);
+      overflow: visible;
+    }
+  }
+
+  @keyframes accordionSlideOut {
+    from {
+      opacity: 1;
+      max-height: 500px;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      max-height: 0;
+      transform: translateY(-10px);
+      overflow: hidden;
+    }
+  }
+</style>
+
 {products.map((product) => (
-  <div class="flex flex-col gap-4">
-    <a href={`/product/${product.handle}`} class:list={["w-fit", active === product.handle ? "strike" : ""]}><span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span></a>
+  <div class="flex flex-col gap-4" transition:name={`product-title-${product.handle}`} transition:animate={accordionSlide}>
+    <a 
+      onclick={active === product.handle && activeProduct ? "event.preventDefault()" : undefined}
+      href={`/product/${product.handle}`}
+      class:list={["w-fit", active === product.handle ? "strike" : ""]}>
+        <span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span>
+    </a>
     
     {active === product.handle && activeProduct && (
-      <div class="flex gap-4 mb-4">
+      <div class="flex gap-4 mb-4" >
         <img class="w-80" src={activeProduct?.images?.[0]?.url ?? ''} alt={activeProduct.title} />
 
         <article class="flex w-auto flex-col justify-between">
