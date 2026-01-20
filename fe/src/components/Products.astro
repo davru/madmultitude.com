@@ -2,7 +2,6 @@
 import Button from "@/components/Button.astro";
 import { listProducts } from "@/lib/data/products.ts";
 import { sdk } from "@/lib/sdk.ts";
-import { accordionSlide } from "@/lib/transitions/accordion-slide.ts";
 import type { StoreProduct } from "@medusajs/types";
 
 const { products } = await sdk.store.product.list({
@@ -12,72 +11,205 @@ const { products } = await sdk.store.product.list({
 
 const { active } = Astro.props;
 
-let activeProduct: StoreProduct | null = null;
+// Fetch all product details for accordion (they're all in DOM, just collapsed)
+const productDetails = await Promise.all(
+  products.map(async (product) => {
+    const detail = await listProducts({
+      countryCode: 'ES',
+      queryParams: { handle: product.handle },
+    }).then(({ response }) => response.products[0]);
+    return { handle: product.handle, detail };
+  })
+);
 
-const activeProductId = products.find((p) => p.handle === active);
-if (activeProductId) {
-  activeProduct = await listProducts({
-    countryCode: 'ES',
-    queryParams: { handle: activeProductId.handle },
-  }).then(({ response }) => response.products[0])
-}
+const getProductDetail = (handle: string): StoreProduct | undefined => {
+  return productDetails.find(p => p.handle === handle)?.detail;
+};
 ---
 
 <style>
-  @keyframes accordionSlideIn {
+  /* Accordion wrapper - uses CSS grid for smooth height animation */
+  .accordion-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    margin-top: 0;
+    transition: 
+      grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .accordion-wrapper[data-active="true"] {
+    grid-template-rows: 1fr;
+    margin-top: 1rem;
+  }
+
+  .accordion-content {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Content fade in when active */
+  .accordion-wrapper[data-active="true"] .product-detail > * {
+    opacity: 0;
+    animation: staggeredFadeIn 0.45s cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+
+  .accordion-wrapper[data-active="true"] .product-detail > *:nth-child(1) {
+    animation-delay: 0.2s;
+  }
+
+  .accordion-wrapper[data-active="true"] .product-detail > *:nth-child(2) {
+    animation-delay: 0.3s;
+  }
+
+  /* Hide content when collapsed */
+  .accordion-wrapper:not([data-active="true"]) .product-detail > * {
+    opacity: 0;
+  }
+
+  /* Staggered fade animation */
+  @keyframes staggeredFadeIn {
     from {
       opacity: 0;
-      max-height: 0;
-      transform: translateY(-10px);
-      overflow: hidden;
+      transform: translateY(12px);
     }
     to {
       opacity: 1;
-      max-height: 500px;
       transform: translateY(0);
-      overflow: visible;
     }
   }
 
-  @keyframes accordionSlideOut {
-    from {
-      opacity: 1;
-      max-height: 500px;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      max-height: 0;
-      transform: translateY(-10px);
-      overflow: hidden;
-    }
+  /* Product detail container */
+  .product-detail {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Image hover effect */
+  .product-image {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-image:hover {
+    transform: scale(1.02);
+  }
+
+  /* Footer elements stagger */
+  .accordion-wrapper[data-active="true"] .product-footer > * {
+    opacity: 0;
+    animation: staggeredFadeIn 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+
+  .accordion-wrapper[data-active="true"] .product-footer > *:nth-child(1) {
+    animation-delay: 0.35s;
+  }
+
+  .accordion-wrapper[data-active="true"] .product-footer > *:nth-child(2) {
+    animation-delay: 0.45s;
   }
 </style>
 
-{products.map((product) => (
-  <div class="flex flex-col gap-4" transition:name={`product-title-${product.handle}`} transition:animate={accordionSlide}>
-    <a 
-      onclick={active === product.handle && activeProduct ? "event.preventDefault()" : undefined}
-      href={`/product/${product.handle}`}
-      class:list={["w-fit", active === product.handle ? "strike" : ""]}>
-        <span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span>
-    </a>
+{products.map((product) => {
+  const productDetail = getProductDetail(product.handle);
+  const isActive = active === product.handle;
+  
+  return (
+    <div class="flex flex-col">
+      <a 
+        href={`/product/${product.handle}`}
+        class:list={["w-fit product-link", isActive ? "strike" : ""]}
+        data-handle={product.handle}
+        transition:name={`product-link-${product.handle}`}
+        transition:animate="none">
+          <span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span>
+      </a>
+      
+      {productDetail && (
+        <div 
+          class="accordion-wrapper"
+          data-active={isActive ? "true" : "false"}
+          data-handle={product.handle}
+        >
+          <div class="accordion-content">
+            <div class="product-detail">
+              <img 
+                class="w-80 product-image" 
+                src={productDetail.images?.[0]?.url ?? ''} 
+                alt={productDetail.title}
+              />
+
+              <article class="flex w-auto flex-col justify-between">
+                <main>
+                  <p set:html={productDetail.description?.replaceAll('\n', '<br/>')}/>
+                </main>
+
+                <footer class="flex flex-col gap-4 product-footer">
+                  <span class="font-normal leading-2.5">{productDetail.variants?.[0]?.calculated_price?.calculated_amount ?? 0}€</span>
+                  <Button>Add to cart</Button>
+                </footer>
+              </article>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+})}
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  function setupAccordion() {
+    const links = document.querySelectorAll<HTMLAnchorElement>('.product-link');
     
-    {active === product.handle && activeProduct && (
-      <div class="flex gap-4 mb-4" >
-        <img class="w-80" src={activeProduct?.images?.[0]?.url ?? ''} alt={activeProduct.title} />
+    links.forEach(link => {
+      link.addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        const handle = link.dataset.handle;
+        const targetAccordion = document.querySelector<HTMLElement>(`.accordion-wrapper[data-handle="${handle}"]`);
+        const isCurrentlyActive = targetAccordion?.dataset.active === 'true';
+        
+        // If clicking the already active one, navigate to index
+        if (isCurrentlyActive) {
+          // Collapse current
+          targetAccordion.dataset.active = 'false';
+          link.classList.remove('strike');
+          
+          // Wait for animation then navigate
+          setTimeout(() => {
+            navigate('/');
+          }, 300);
+          return;
+        }
+        
+        // Collapse any currently open accordion
+        const currentActive = document.querySelector<HTMLElement>('.accordion-wrapper[data-active="true"]');
+        const currentLink = document.querySelector<HTMLAnchorElement>('.product-link.strike');
+        
+        if (currentActive) {
+          currentActive.dataset.active = 'false';
+          currentLink?.classList.remove('strike');
+        }
+        
+        // Small delay before expanding new one
+        await new Promise(r => setTimeout(r, currentActive ? 150 : 0));
+        
+        // Expand the clicked one
+        if (targetAccordion) {
+          targetAccordion.dataset.active = 'true';
+          link.classList.add('strike');
+          
+          // Update URL without full navigation
+          history.pushState({}, '', `/product/${handle}`);
+        }
+      });
+    });
+  }
 
-        <article class="flex w-auto flex-col justify-between">
-          <main>
-            <p set:html={activeProduct.description?.replaceAll('\n', '<br/>')}/>
-          </main>
-
-          <footer class="flex flex-col gap-4">
-            <span class="font-normal leading-2.5">{activeProduct?.variants?.[0]?.calculated_price?.calculated_amount ?? 0}€</span>
-            <Button>Add to cart</Button>
-          </footer>
-        </article>
-      </div>
-    )}
-  </div>
-))}
+  // Run on initial load and after each navigation
+  setupAccordion();
+  document.addEventListener('astro:after-swap', setupAccordion);
+</script>
