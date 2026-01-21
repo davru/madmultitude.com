@@ -1,12 +1,17 @@
 {
-  "name": "madmultitude",
+  "name": "madmultitude.com",
+  "type": "module",
   "version": "0.0.1",
-  "private": true,
-  "description": "Mad Multitude e-commerce website",
   "scripts": {
-    "dev": "pnpm --filter ./fe dev",
-    "build": "pnpm --filter ./fe build",
-    "preview": "pnpm --filter ./fe preview"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.16.5",
+    "tailwindcss": "^4.1.18"
   },
   "packageManager": "pnpm@9.15.3",
   "engines": {
