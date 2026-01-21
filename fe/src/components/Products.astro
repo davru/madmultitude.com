@@ -1,29 +1,23 @@
 ---
 import Button from "@/components/Button.astro";
-import { listProducts } from "@/lib/data/products.ts";
-import { sdk } from "@/lib/sdk.ts";
-import type { StoreProduct } from "@medusajs/types";
+import { listProducts, getProductBySlug, getProductMeta, getProductPrice } from "@/lib/data/products";
+import type { WooProductWithVariations } from "@/lib/woocommerce";
 
-const { products } = await sdk.store.product.list({
-  fields: 'title,handle,metadata',
-  order: '-created_at',
-});
+// Fetch all products
+const products = await listProducts({ orderby: 'date', order: 'desc' });
 
 const { active } = Astro.props;
 
 // Fetch all product details for accordion (they're all in DOM, just collapsed)
 const productDetails = await Promise.all(
   products.map(async (product) => {
-    const detail = await listProducts({
-      countryCode: 'ES',
-      queryParams: { handle: product.handle },
-    }).then(({ response }) => response.products[0]);
-    return { handle: product.handle, detail };
+    const detail = await getProductBySlug(product.slug);
+    return { slug: product.slug, detail };
   })
 );
 
-const getProductDetail = (handle: string): StoreProduct | undefined => {
-  return productDetails.find(p => p.handle === handle)?.detail;
+const getProductDetail = (slug: string): WooProductWithVariations | null => {
+  return productDetails.find(p => p.slug === slug)?.detail ?? null;
 };
 ---
 
@@ -112,41 +106,47 @@ const getProductDetail = (handle: string): StoreProduct | undefined => {
 </style>
 
 {products.map((product) => {
-  const productDetail = getProductDetail(product.handle);
-  const isActive = active === product.handle;
+  const productDetail = getProductDetail(product.slug);
+  const isActive = active === product.slug;
+  const price = productDetail ? getProductPrice(productDetail) : 0;
+
+  // Format date as DDMMYY
+  const releaseDate = new Date(product.date_created).toLocaleDateString('en-GB').replace(/\//g, '').slice(0, 4);
+  const releaseYear = new Date(product.date_created).toLocaleDateString('en-GB').replace(/\//g, '').slice(4, 6);
+  const formattedReleaseDate = `${releaseDate}${releaseYear}`;
   
   return (
     <div class="flex flex-col">
       <a 
-        href={`/product/${product.handle}`}
+        href={`/product/${product.slug}`}
         class:list={["w-fit product-link", isActive ? "strike" : ""]}
-        data-handle={product.handle}
-        transition:name={`product-link-${product.handle}`}
+        data-handle={product.slug}
+        transition:name={`product-link-${product.slug}`}
         transition:animate="none">
-          <span class="font-normal">#{product.title}</span>. <span class="font-extralight">{typeof product.metadata?.release_date === 'string' ? product.metadata?.release_date.replaceAll('"', '') : ''}</span>
+          <span class="font-normal">#{product.name}</span>. <span class="font-extralight">{formattedReleaseDate}</span>
       </a>
       
       {productDetail && (
         <div 
           class="accordion-wrapper"
           data-active={isActive ? "true" : "false"}
-          data-handle={product.handle}
+          data-handle={product.slug}
         >
           <div class="accordion-content">
             <div class="product-detail">
               <img 
                 class="w-80 product-image" 
-                src={productDetail.images?.[0]?.url ?? ''} 
-                alt={productDetail.title}
+                src={productDetail.images?.[0]?.src ?? ''} 
+                alt={productDetail.images?.[0]?.alt || productDetail.name}
               />
 
               <article class="flex w-auto flex-col justify-between">
                 <main>
-                  <p set:html={productDetail.description?.replaceAll('\n', '<br/>')}/>
+                  <Fragment set:html={productDetail.short_description || productDetail.description} />
                 </main>
 
                 <footer class="flex flex-col gap-4 product-footer">
-                  <span class="font-normal leading-2.5">{productDetail.variants?.[0]?.calculated_price?.calculated_amount ?? 0}€</span>
+                  <span class="font-normal leading-2.5">{price}€</span>
                   <Button>Add to cart</Button>
                 </footer>
               </article>

@@ -1,122 +1,113 @@
-import type { HttpTypes } from "@medusajs/types"
-import { sdk } from "../sdk"
-import { getAuthToken } from "../util/headers"
-import { sortProducts, type SortOptions } from "../util/sort-product"
+import { woo, type WooProduct, type WooProductListParams, type WooProductWithVariations } from '../woocommerce';
 
-export const listProducts = async ({
-  pageParam = 1,
-  queryParams,
-  countryCode,
-  regionId,
-}: {
-  countryCode: string
-  pageParam?: number
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
-  regionId?: string
-}): Promise<{
-  response: { products: HttpTypes.StoreProduct[]; count: number }
-  nextPage: number | null
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
-}> => {
-  if (!countryCode && !regionId) {
-    throw new Error("Country code or region ID is required")
-  }
+export type SortOptions = 'price_asc' | 'price_desc' | 'date';
 
-  const limit = queryParams?.limit || 12
-  const _pageParam = Math.max(pageParam, 1)
-  const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
-
-  const regions = await sdk.store.region.list();
-  const region = regions.regions[0];
-
-  if (!region) {
-    return {
-      response: { products: [], count: 0 },
-      nextPage: null,
-    }
-  }
-
-  const token = await getAuthToken();
-
-  return sdk.client
-    .fetch<{ products: HttpTypes.StoreProduct[]; count: number }>(
-      `/store/products`,
-      {
-        method: "GET",
-        query: {
-          limit,
-          offset,
-          region_id: region?.id,
-          fields:
-            "*variants.calculated_price,+variants.inventory_quantity,*variants.images,+metadata,+tags,",
-          ...queryParams,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        cache: "force-cache",
-      }
-    )
-    .then(({ products, count }) => {
-      const nextPage = count > offset + limit ? pageParam + 1 : null
-
-      return {
-        response: {
-          products,
-          count,
-        },
-        nextPage: nextPage,
-        queryParams,
-      }
-    })
+/**
+ * List all products
+ */
+export async function listProducts(params?: WooProductListParams): Promise<WooProduct[]> {
+  return woo.listProducts(params);
 }
 
 /**
- * This will fetch 100 products to the Next.js cache and sort them based on the sortBy parameter.
- * It will then return the paginated products based on the page and limit parameters.
+ * Get a single product by slug with full details
  */
-export const listProductsWithSort = async ({
-  page = 0,
-  queryParams,
-  sortBy = "created_at",
-  countryCode,
-}: {
-  page?: number
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
-  sortBy?: SortOptions
-  countryCode: string
-}): Promise<{
-  response: { products: HttpTypes.StoreProduct[]; count: number }
-  nextPage: number | null
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
-}> => {
-  const limit = queryParams?.limit || 12
-
-  const {
-    response: { products, count },
-  } = await listProducts({
-    pageParam: 0,
-    queryParams: {
-      ...queryParams,
-      limit: 100,
-    },
-    countryCode,
-  })
-
-  const sortedProducts = sortProducts(products, sortBy)
-
-  const pageParam = (page - 1) * limit
-
-  const nextPage = count > pageParam + limit ? pageParam + limit : null
-
-  const paginatedProducts = sortedProducts.slice(pageParam, pageParam + limit)
-
-  return {
-    response: {
-      products: paginatedProducts,
-      count,
-    },
-    nextPage,
-    queryParams,
+export async function getProductBySlug(slug: string): Promise<WooProductWithVariations | null> {
+  const product = await woo.getProductBySlug(slug);
+  
+  if (!product) return null;
+  
+  // If it's a variable product, load variations
+  if (product.type === 'variable' && product.variations.length > 0) {
+    const variations = await woo.getProductVariations(product.id);
+    return { ...product, loaded_variations: variations };
   }
+  
+  return product;
+}
+
+/**
+ * Get a single product by ID with full details
+ */
+export async function getProductById(id: number): Promise<WooProductWithVariations | null> {
+  try {
+    const product = await woo.getProduct(id);
+    
+    // If it's a variable product, load variations
+    if (product.type === 'variable' && product.variations.length > 0) {
+      const variations = await woo.getProductVariations(product.id);
+      return { ...product, loaded_variations: variations };
+    }
+    
+    return product;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * List products with sorting
+ */
+export async function listProductsWithSort({
+  page = 1,
+  perPage = 12,
+  sortBy = 'date',
+}: {
+  page?: number;
+  perPage?: number;
+  sortBy?: SortOptions;
+}): Promise<{ products: WooProduct[]; hasMore: boolean }> {
+  let order: 'asc' | 'desc' = 'desc';
+  let orderby: 'date' | 'price' = 'date';
+  
+  switch (sortBy) {
+    case 'price_asc':
+      orderby = 'price';
+      order = 'asc';
+      break;
+    case 'price_desc':
+      orderby = 'price';
+      order = 'desc';
+      break;
+    case 'date':
+    default:
+      orderby = 'date';
+      order = 'desc';
+  }
+  
+  const products = await woo.listProducts({
+    page,
+    per_page: perPage + 1, // Fetch one extra to check if there are more
+    order,
+    orderby,
+  });
+  
+  const hasMore = products.length > perPage;
+  
+  return {
+    products: hasMore ? products.slice(0, perPage) : products,
+    hasMore,
+  };
+}
+
+/**
+ * Get product metadata value by key
+ */
+export function getProductMeta(product: WooProduct, key: string): string | undefined {
+  return product.meta_data.find(m => m.key === key)?.value;
+}
+
+/**
+ * Get the display price for a product
+ */
+export function getProductPrice(product: WooProductWithVariations): number {
+  // For variable products, get the lowest variation price
+  if (product.type === 'variable' && product.loaded_variations?.length) {
+    const prices = product.loaded_variations
+      .map(v => parseFloat(v.price))
+      .filter(p => !isNaN(p));
+    return Math.min(...prices);
+  }
+  
+  return parseFloat(product.price) || 0;
 }

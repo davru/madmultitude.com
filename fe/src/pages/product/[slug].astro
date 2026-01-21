@@ -1,14 +1,14 @@
 ---
 import Products from '@/components/Products.astro';
 import Layout from '@/layouts/Layout.astro';
-import { sdk } from '@/lib/sdk';
+import { listProducts } from '@/lib/data/products';
 import type { GetStaticPaths } from 'astro';
 
 export const getStaticPaths = (async () => {
-  const { products } = await sdk.store.product.list();
+  const products = await listProducts();
   return products.map((product) => ({
     params: {
-      slug: product.handle,
+      slug: product.slug,
     }
   }));
 }) satisfies GetStaticPaths;
