@@ -2,19 +2,11 @@
   "name": "madmultitude",
   "version": "0.0.1",
   "private": true,
-  "description": "Mad Multitude e-commerce monorepo",
+  "description": "Mad Multitude e-commerce website",
   "scripts": {
-    "dev": "concurrently -k -p \"[{name}]\" -n \"BE,FE\" -c \"magenta.bold,cyan.bold\" \"pnpm run dev:be\" \"pnpm run dev:fe\"",
-    "dev:fe": "pnpm --filter ./fe dev",
-    "dev:be": "pnpm --filter ./be dev",
-    "build": "concurrently -p \"[{name}]\" -n \"BE,FE\" -c \"magenta.bold,cyan.bold\" \"pnpm run build:be\" \"pnpm run build:fe\"",
-    "build:fe": "pnpm --filter ./fe build",
-    "build:be": "pnpm --filter ./be build",
-    "start:be": "pnpm --filter ./be start",
-    "seed": "pnpm --filter ./be seed"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
+    "dev": "pnpm --filter ./fe dev",
+    "build": "pnpm --filter ./fe build",
+    "preview": "pnpm --filter ./fe preview"
   },
   "packageManager": "pnpm@9.15.3",
   "engines": {
